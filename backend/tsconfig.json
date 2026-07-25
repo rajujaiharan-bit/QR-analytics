@@ -11,13 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src/**/*"],
-  "ts-node": {
-    "transpileOnly": true,
-    "esm": false,
-    "compilerOptions": {
-      "module": "CommonJS",
-      "moduleResolution": "node"
-    }
-  }
+  "include": ["src/**/*"]
 }

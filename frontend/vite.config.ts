@@ -7,14 +7,14 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    allowedHosts: true, // Allow all tunnel domains (localtunnel, serveo, custom hosts)
+    allowedHosts: true, // Allow all tunnel domains
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true
       },
       '/r': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true
       }
     }

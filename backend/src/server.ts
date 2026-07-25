@@ -6,11 +6,11 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
-import { connectDB } from './config/db.js';
-import router from './routes/index.js';
-import { initSocketServer } from './sockets/scanSocket.js';
-import User from './models/User.js';
-import { seedDatabase } from './utils/seedData.js';
+import { connectDB } from './config/db';
+import router from './routes/index';
+import { initSocketServer } from './sockets/scanSocket';
+import User from './models/User';
+import { seedDatabase } from './utils/seedData';
 
 dotenv.config();
 

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import QRCode from '../models/QRCode.js';
-import Scan from '../models/Scan.js';
-import Campaign from '../models/Campaign.js';
-import LandingPage from '../models/LandingPage.js';
-import Notification from '../models/Notification.js';
-import { extractScanMetadata } from '../utils/geoLookup.js';
-import { emitScanEvent } from '../sockets/scanSocket.js';
+import QRCode from '../models/QRCode';
+import Scan from '../models/Scan';
+import Campaign from '../models/Campaign';
+import LandingPage from '../models/LandingPage';
+import Notification from '../models/Notification';
+import { extractScanMetadata } from '../utils/geoLookup';
+import { emitScanEvent } from '../sockets/scanSocket';
 import crypto from 'crypto';
 
 export const handleQRRedirect = async (req: Request, res: Response): Promise<void> => {
