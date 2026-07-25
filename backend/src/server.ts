@@ -1,0 +1,82 @@
+import express from 'express';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import dotenv from 'dotenv';
+
+import { connectDB } from './config/db';
+import router from './routes/index';
+import { initSocketServer } from './sockets/scanSocket';
+import User from './models/User';
+import { seedDatabase } from './utils/seedData';
+
+dotenv.config();
+
+const app = express();
+const server = http.createServer(app);
+
+const PORT = process.env.PORT || 5000;
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
+
+// Socket.io initialization
+const io = new SocketIOServer(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+initSocketServer(io);
+
+// Security & Middleware
+app.use(helmet({ contentSecurityPolicy: false }));
+app.use(
+  cors({
+    origin: '*',
+    credentials: true
+  })
+);
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Global Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  message: 'Too many requests from this IP, please try again later.'
+});
+app.use(limiter);
+
+// Mount main router (contains /r/:shortCode, /api/auth, /api/qr, /api/campaigns, etc.)
+app.use(router);
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date(), service: 'QR Advertising Platform API' });
+});
+
+// Database connection & Auto-Seed on Startup
+connectDB().then(async () => {
+  try {
+    const userCount = await User.countDocuments();
+    if (userCount === 0) {
+      console.log('[Server] Database is empty. Seeding initial demo data & campaigns...');
+      await seedDatabase();
+    }
+  } catch (err) {
+    console.error('[Server] Auto-seed check error:', err);
+  }
+
+  server.listen(PORT, () => {
+    console.log(`
+==========================================================
+🚀 QR Advertising Analytics Platform Backend is Live!
+📡 Server Port: ${PORT}
+🌐 API Base: http://localhost:${PORT}/api
+🔗 Dynamic QR Short URL Base: http://localhost:${PORT}/r/:shortCode
+⚡ Real-time Socket.io Active
+==========================================================
+    `);
+  });
+});
