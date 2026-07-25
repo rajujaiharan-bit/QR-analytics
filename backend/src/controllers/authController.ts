@@ -19,7 +19,7 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
 
     const cleanEmail = email.trim().toLowerCase();
 
-    const existingUser = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
       res.status(400).json({ message: 'User with this email already exists' });
       return;
@@ -64,7 +64,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     const cleanEmail = email.trim().toLowerCase();
 
-    const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
+    const user = await User.findOne({ email: cleanEmail });
     if (!user) {
       res.status(401).json({ message: 'Invalid email or password' });
       return;
