@@ -1,5 +1,6 @@
 import express from 'express';
 import http from 'http';
+import path from 'path';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -16,7 +17,7 @@ dotenv.config();
 
 const app = express();
 
-// Trust reverse proxy (Serveo, LocalTunnel, Vercel, Render)
+// Trust reverse proxy (Serveo, LocalTunnel, Cloudflare, Vercel, Render)
 app.set('trust proxy', 1);
 
 const server = http.createServer(app);
@@ -70,6 +71,18 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date(), service: 'QR Advertising Platform API' });
 });
 
+// Serve frontend static dist assets directly from Express
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
+
+// Client SPA Fallback Routing
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/r/')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
 // Database connection & Auto-Seed on Startup
 connectDB().then(async () => {
   try {
@@ -82,7 +95,7 @@ connectDB().then(async () => {
     console.error('[Server] Auto-seed check error:', err);
   }
 
-  server.listen(PORT, () => {
+  server.listen(Number(PORT), '0.0.0.0', () => {
     console.log(`
 ==========================================================
 🚀 QR Advertising Analytics Platform Backend is Live!
