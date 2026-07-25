@@ -6,11 +6,11 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
-import { connectDB } from './config/db';
-import router from './routes/index';
-import { initSocketServer } from './sockets/scanSocket';
-import User from './models/User';
-import { seedDatabase } from './utils/seedData';
+import { connectDB } from './config/db.js';
+import router from './routes/index.js';
+import { initSocketServer } from './sockets/scanSocket.js';
+import User from './models/User.js';
+import { seedDatabase } from './utils/seedData.js';
 
 dotenv.config();
 
@@ -18,7 +18,6 @@ const app = express();
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 5000;
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 
 // Socket.io initialization
 const io = new SocketIOServer(server, {
@@ -29,11 +28,14 @@ const io = new SocketIOServer(server, {
 });
 initSocketServer(io);
 
-// Security & Middleware
+// Security & Dynamic CORS Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
   cors({
-    origin: '*',
+    origin: (origin, callback) => {
+      // Dynamically echo request origin to support all tunnel & cloud domains with credentials
+      callback(null, true);
+    },
     credentials: true
   })
 );
