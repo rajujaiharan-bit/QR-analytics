@@ -21,18 +21,36 @@ export const Login: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Failed to sign in');
+      setError(err.response?.data?.message || 'Failed to sign in. Please check credentials or backend status.');
     }
   };
 
-  const fillDemoUser = () => {
+  const fillDemoUser = async () => {
     setEmail('demo@qrads.com');
     setPassword('Password123!');
+    setLoading(true);
+    setError('');
+    try {
+      await login('demo@qrads.com', 'Password123!');
+      navigate('/dashboard');
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.response?.data?.message || 'Failed to sign in as Demo user');
+    }
   };
 
-  const fillAdminUser = () => {
+  const fillAdminUser = async () => {
     setEmail('admin@qrads.com');
     setPassword('Password123!');
+    setLoading(true);
+    setError('');
+    try {
+      await login('admin@qrads.com', 'Password123!');
+      navigate('/dashboard');
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.response?.data?.message || 'Failed to sign in as Admin user');
+    }
   };
 
   return (
@@ -98,13 +116,17 @@ export const Login: React.FC = () => {
           <span className="text-[11px] text-gray-500 font-medium block">⚡ Instant 1-Click Demo Login</span>
           <div className="flex items-center space-x-2">
             <button
+              type="button"
               onClick={fillDemoUser}
+              disabled={loading}
               className="flex-1 py-2 px-3 rounded-xl bg-gray-800/60 hover:bg-gray-800 text-gray-300 text-[11px] font-semibold border border-gray-700 transition-colors"
             >
               Demo Advertiser
             </button>
             <button
+              type="button"
               onClick={fillAdminUser}
+              disabled={loading}
               className="flex-1 py-2 px-3 rounded-xl bg-purple-900/30 hover:bg-purple-900/50 text-purple-300 text-[11px] font-semibold border border-purple-800/50 transition-colors"
             >
               Admin Demo

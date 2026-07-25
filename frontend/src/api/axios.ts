@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+// Relative API base so requests go to current domain on all devices (mobile phones, tunnels, cloud deployments)
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export const api = axios.create({
   baseURL: API_BASE,
