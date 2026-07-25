@@ -11,7 +11,8 @@ import crypto from 'crypto';
 export const handleQRRedirect = async (req: Request, res: Response): Promise<void> => {
   try {
     const { shortCode } = req.params;
-    const isJsonRequest = req.headers['accept']?.includes('application/json') || req.query.json === 'true';
+    // Only return JSON if explicitly requested via ?json=true query param (e.g. for API/SPA fetch)
+    const isJsonRequest = req.query.json === 'true';
 
     const qr = await QRCode.findOne({ shortCode }).populate('landingPage');
     if (!qr) {
@@ -135,8 +136,9 @@ export const handleQRRedirect = async (req: Request, res: Response): Promise<voi
         return;
       }
       // Redirect to frontend landing page view route
-      const clientBase = process.env.CLIENT_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
-      res.redirect(`${clientBase}/p/${shortCode}`);
+      const host = req.headers['x-forwarded-host'] || req.get('host');
+      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      res.redirect(`${protocol}://${host}/p/${shortCode}`);
       return;
     }
 
@@ -155,6 +157,7 @@ export const handleQRRedirect = async (req: Request, res: Response): Promise<voi
       return;
     }
 
+    // HTTP 302 Redirect to destination URL
     res.redirect(302, targetUrl);
   } catch (error: any) {
     res.status(500).json({ message: 'Error processing dynamic QR redirect', error: error.message });
