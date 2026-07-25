@@ -17,7 +17,7 @@ dotenv.config();
 const app = express();
 const server = http.createServer(app);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Socket.io initialization
 const io = new SocketIOServer(server, {
@@ -28,17 +28,24 @@ const io = new SocketIOServer(server, {
 });
 initSocketServer(io);
 
-// Security & Dynamic CORS Middleware
+// Security & Dynamic CORS Middleware with Explicit OPTIONS Preflight Response
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Dynamically echo request origin to support all tunnel & cloud domains with credentials
-      callback(null, true);
-    },
-    credentials: true
-  })
-);
+
+// Custom robust CORS middleware for cross-origin mobile browser compatibility
+app.use((req, res, next) => {
+  const origin = (req.headers.origin as string) || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

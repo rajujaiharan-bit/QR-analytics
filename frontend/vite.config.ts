@@ -8,14 +8,17 @@ export default defineConfig({
     port: 5173,
     host: true,
     allowedHosts: true, // Allow all tunnel domains
+    cors: true, // Enable CORS on Vite dev server
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
-        changeOrigin: true
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true,
+        secure: false
       },
       '/r': {
-        target: 'http://localhost:5001',
-        changeOrigin: true
+        target: 'http://127.0.0.1:5001',
+        changeOrigin: true,
+        secure: false
       }
     }
   }
