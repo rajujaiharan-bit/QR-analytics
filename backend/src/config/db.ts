@@ -4,30 +4,20 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 let mongoMemoryServer: MongoMemoryServer | null = null;
 
 export const connectDB = async (): Promise<void> => {
-  const mongoURI = process.env.MONGODB_URI;
+  if (mongoose.connection.readyState === 1) return;
 
-  // 1. Try environment MONGODB_URI if specified
-  if (mongoURI) {
-    try {
-      await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 4000 });
-      console.log(`[Database] Connected successfully to MongoDB Atlas / Custom URI`);
-      return;
-    } catch (error) {
-      console.warn(`[Database] Failed to connect to specified MONGODB_URI:`, error);
-    }
-  }
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/qr_advertising_platform';
 
-  // 2. Try local MongoDB daemon
+  // 1. Try local / custom MongoDB daemon with 2.5s timeout
   try {
-    const localURI = 'mongodb://127.0.0.1:27017/qr_advertising_platform';
-    await mongoose.connect(localURI, { serverSelectionTimeoutMS: 2000 });
-    console.log(`[Database] Connected successfully to local MongoDB at: ${localURI}`);
+    await mongoose.connect(mongoURI, { serverSelectionTimeoutMS: 2500 });
+    console.log(`[Database] Connected successfully to MongoDB at: ${mongoURI}`);
     return;
   } catch (error) {
-    console.warn(`[Database] Local MongoDB server not detected. Attempting In-Memory MongoDB Server...`);
+    console.warn(`[Database] Local MongoDB server not responding at ${mongoURI}. Starting In-Memory Fallback...`);
   }
 
-  // 3. Fallback to MongoMemoryServer
+  // 2. Fallback to MongoMemoryServer
   try {
     mongoMemoryServer = await MongoMemoryServer.create({
       instance: { dbName: 'qr_advertising_platform' }
@@ -36,7 +26,7 @@ export const connectDB = async (): Promise<void> => {
     await mongoose.connect(inMemoryURI);
     console.log(`[Database] Connected successfully to In-Memory MongoDB at: ${inMemoryURI}`);
   } catch (memErr) {
-    console.error('[Database] Warning: In-Memory MongoDB unavailable on this container. Server will stay online.', memErr);
+    console.error('[Database] Critical error initializing in-memory fallback:', memErr);
   }
 };
 

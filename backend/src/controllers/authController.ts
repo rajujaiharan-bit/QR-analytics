@@ -17,18 +17,20 @@ export const registerUser = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    const existingUser = await User.findOne({ email });
+    const cleanEmail = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
     if (existingUser) {
       res.status(400).json({ message: 'User with this email already exists' });
       return;
     }
 
     const user = await User.create({
-      name,
-      email,
+      name: name.trim(),
+      email: cleanEmail,
       password,
-      company: company || '',
-      businessType: businessType || 'Retail & Package Design'
+      company: company ? company.trim() : '',
+      businessType: businessType ? businessType.trim() : 'Retail & Package Design'
     });
 
     const token = generateToken(user._id.toString());
@@ -60,7 +62,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const user = await User.findOne({ email });
+    const cleanEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } });
     if (!user) {
       res.status(401).json({ message: 'Invalid email or password' });
       return;
