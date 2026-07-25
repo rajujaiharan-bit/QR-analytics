@@ -11,7 +11,7 @@ import crypto from 'crypto';
 export const handleQRRedirect = async (req: Request, res: Response): Promise<void> => {
   try {
     const { shortCode } = req.params;
-    // Only return JSON if explicitly requested via ?json=true query param (e.g. for API/SPA fetch)
+    // Only return JSON if explicitly requested via ?json=true query param
     const isJsonRequest = req.query.json === 'true';
 
     const qr = await QRCode.findOne({ shortCode }).populate('landingPage');
@@ -135,9 +135,14 @@ export const handleQRRedirect = async (req: Request, res: Response): Promise<voi
         });
         return;
       }
-      // Redirect to frontend landing page view route
-      const host = req.headers['x-forwarded-host'] || req.get('host');
-      const protocol = req.headers['x-forwarded-proto'] || req.protocol;
+      let host = (req.headers['x-forwarded-host'] || req.headers['host'] || req.get('host')) as string;
+      const protocol = (req.headers['x-forwarded-proto'] as string) || 'https';
+      if (req.headers.referer) {
+        try {
+          const u = new URL(req.headers.referer as string);
+          host = u.host;
+        } catch (e) {}
+      }
       res.redirect(`${protocol}://${host}/p/${shortCode}`);
       return;
     }
