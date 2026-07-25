@@ -18,7 +18,7 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
   const [brandName, setBrandName] = useState('');
   const [description, setDescription] = useState('');
   const [destinationType, setDestinationType] = useState<string>('website');
-  const [destinationUrl, setDestinationUrl] = useState('https://');
+  const [destinationUrl, setDestinationUrl] = useState('');
   const [campaignId, setCampaignId] = useState('');
   const [landingPageId, setLandingPageId] = useState('');
 
@@ -61,9 +61,17 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !brandName || !destinationUrl) {
+    if (!name || !brandName || (!destinationUrl && destinationType !== 'landing_page')) {
       alert('Please fill in Name, Brand Name, and Destination URL');
       return;
+    }
+
+    let cleanUrl = destinationUrl.trim();
+    if (cleanUrl) {
+      cleanUrl = cleanUrl.replace(/^(https?:\/\/)+/i, 'https://');
+      if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        cleanUrl = `https://${cleanUrl}`;
+      }
     }
 
     setLoading(true);
@@ -73,7 +81,7 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
         brandName,
         description,
         destinationType,
-        destinationUrl,
+        destinationUrl: cleanUrl || 'https://google.com',
         campaignId: campaignId || undefined,
         landingPageId: landingPageId || undefined,
         fgColor,
@@ -93,7 +101,7 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
     }
   };
 
-  const sampleShortUrl = `https://myapp.com/r/preview`;
+  const sampleShortUrl = `${window.location.origin}/r/preview`;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -405,7 +413,7 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
               style={{ backgroundColor: bgColor }}
             >
               <QRCodeSVG
-                value={destinationUrl || sampleShortUrl}
+                value={sampleShortUrl}
                 size={180}
                 fgColor={fgColor}
                 bgColor={bgColor}

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import QRCode from '../models/QRCode';
-import Scan from '../models/Scan';
-import Campaign from '../models/Campaign';
-import LandingPage from '../models/LandingPage';
-import Notification from '../models/Notification';
-import { extractScanMetadata } from '../utils/geoLookup';
-import { emitScanEvent } from '../sockets/scanSocket';
+import QRCode from '../models/QRCode.js';
+import Scan from '../models/Scan.js';
+import Campaign from '../models/Campaign.js';
+import LandingPage from '../models/LandingPage.js';
+import Notification from '../models/Notification.js';
+import { extractScanMetadata } from '../utils/geoLookup.js';
+import { emitScanEvent } from '../sockets/scanSocket.js';
 import crypto from 'crypto';
 
 export const handleQRRedirect = async (req: Request, res: Response): Promise<void> => {
@@ -135,13 +135,17 @@ export const handleQRRedirect = async (req: Request, res: Response): Promise<voi
         return;
       }
       // Redirect to frontend landing page view route
-      const clientBase = process.env.CLIENT_URL || 'http://localhost:5173';
+      const clientBase = process.env.CLIENT_URL || req.headers.origin || `${req.protocol}://${req.get('host')}`;
       res.redirect(`${clientBase}/p/${shortCode}`);
       return;
     }
 
-    // Direct URL redirection
-    let targetUrl = qr.destinationUrl;
+    // Direct URL redirection & URL sanitization
+    let targetUrl = qr.destinationUrl ? qr.destinationUrl.trim() : 'https://google.com';
+
+    // Strip duplicate protocol prefixes (e.g. https://https:// or http://https://)
+    targetUrl = targetUrl.replace(/^(https?:\/\/)+/i, 'https://');
+
     if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
       targetUrl = `https://${targetUrl}`;
     }
