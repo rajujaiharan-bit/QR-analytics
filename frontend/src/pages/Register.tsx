@@ -24,7 +24,12 @@ export const Register: React.FC = () => {
       navigate('/dashboard');
     } catch (err: any) {
       setLoading(false);
-      setError(err.response?.data?.message || 'Failed to create account');
+      const serverMsg = err.response?.data?.message || err.message;
+      if (serverMsg && serverMsg.includes('already exists')) {
+        setError('An account with this email already exists. Please Sign In below.');
+      } else {
+        setError(serverMsg || 'Failed to create account. Please try another email or check credentials.');
+      }
     }
   };
 
@@ -40,7 +45,7 @@ export const Register: React.FC = () => {
         </div>
 
         {error && (
-          <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-medium">
+          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs text-center font-semibold">
             {error}
           </div>
         )}
