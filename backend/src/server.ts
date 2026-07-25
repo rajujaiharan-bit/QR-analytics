@@ -15,6 +15,10 @@ import { seedDatabase } from './utils/seedData';
 dotenv.config();
 
 const app = express();
+
+// Trust reverse proxy (Serveo, LocalTunnel, Vercel, Render)
+app.set('trust proxy', 1);
+
 const server = http.createServer(app);
 
 const PORT = process.env.PORT || 5001;
@@ -49,10 +53,11 @@ app.use((req, res, next) => {
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Global Rate Limiting
+// Global Rate Limiting with proxy validation bypass
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
+  validate: { xForwardedForHeader: false },
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use(limiter);
