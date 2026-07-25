@@ -5,15 +5,16 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // exposes the server to your local network, not just localhost
     port: 5173,
+    host: true,
+    allowedHosts: true, // Allow all tunnel domains (localtunnel, serveo, custom hosts)
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true
       },
       '/r': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true
       }
     }
