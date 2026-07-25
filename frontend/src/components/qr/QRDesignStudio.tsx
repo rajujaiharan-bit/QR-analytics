@@ -101,7 +101,17 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
     }
   };
 
-  const sampleShortUrl = `${window.location.origin}/r/preview`;
+  // Real-time canvas value: encodes destination URL directly or dynamic short code
+  const getLiveCanvasValue = () => {
+    if (destinationUrl && destinationUrl.trim().length > 0) {
+      let u = destinationUrl.trim().replace(/^(https?:\/\/)+/i, 'https://');
+      if (!u.startsWith('http://') && !u.startsWith('https://')) {
+        u = `https://${u}`;
+      }
+      return u;
+    }
+    return `${window.location.origin}/r/preview`;
+  };
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
@@ -413,7 +423,7 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
               style={{ backgroundColor: bgColor }}
             >
               <QRCodeSVG
-                value={sampleShortUrl}
+                value={getLiveCanvasValue()}
                 size={180}
                 fgColor={fgColor}
                 bgColor={bgColor}
@@ -435,9 +445,9 @@ export const QRDesignStudio: React.FC<QRDesignStudioProps> = ({ isOpen, onClose,
 
           <div className="mt-4 text-center space-y-1">
             <span className="inline-block px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold">
-              ⚡ Dynamic Short URL Enabled
+              ⚡ Live Phone Scannable
             </span>
-            <p className="text-[10px] text-gray-400 font-mono">/r/preview_code</p>
+            <p className="text-[10px] text-gray-400 font-mono truncate max-w-[200px]">{destinationUrl || '/r/preview'}</p>
           </div>
         </div>
 
