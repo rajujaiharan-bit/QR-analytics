@@ -1,6 +1,7 @@
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import fs from 'fs';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -71,17 +72,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date(), service: 'QR Advertising Platform API' });
 });
 
-// Serve frontend static dist assets directly from Express
+// Serve frontend static dist assets directly from Express if built
 const frontendDistPath = path.join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendDistPath));
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
 
-// Client SPA Fallback Routing
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/r/')) {
-    return next();
-  }
-  res.sendFile(path.join(frontendDistPath, 'index.html'));
-});
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/r/')) {
+      return next();
+    }
+    const indexPath = path.join(frontendDistPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath);
+    } else {
+      next();
+    }
+  });
+}
 
 // Database connection & Auto-Seed on Startup
 connectDB().then(async () => {
