@@ -39,50 +39,47 @@ export const App: React.FC = () => {
   return (
     <>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/dashboard" />} />
-        <Route path="/register" element={!user ? <Register /> : <Navigate to="/dashboard" />} />
+        {/* Public Dynamic Landing Pages */}
         <Route path="/p/:shortCode" element={<PublicLandingView />} />
 
-        {/* Protected Dashboard Layout */}
+        {/* Global Access - Direct Dashboard Navigation */}
         <Route
           path="/*"
           element={
-            user ? (
-              <div className="min-h-screen flex bg-gray-50 dark:bg-[#090D16] text-gray-900 dark:text-gray-100 transition-colors duration-200">
-                <Sidebar
-                  onOpenApiDocs={() => setShowApiDocsModal(true)}
-                  onOpenNewQR={() => setShowStudioModal(true)}
-                />
-                <div className="flex-1 flex flex-col min-w-0">
-                  <Navbar onSearchChange={(t) => setSearchTerm(t)} />
-                  <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
-                    <Routes>
-                      <Route path="/dashboard" element={<Dashboard onOpenNewQR={() => setShowStudioModal(true)} />} />
-                      <Route
-                        path="/qr-codes"
-                        element={
-                          <QRCodesList
-                            onOpenNewQR={() => setShowStudioModal(true)}
-                            onOpenBulkModal={() => setShowBulkModal(true)}
-                            searchTerm={searchTerm}
-                          />
-                        }
-                      />
-                      <Route path="/qr/:id" element={<QRDetails />} />
-                      <Route path="/campaign-roi" element={<CampaignROIDashboardPage />} />
-                      <Route path="/analytics" element={<AnalyticsViewPage />} />
-                      <Route path="/landing-builder" element={<LandingBuilderPage />} />
-                      <Route path="/profile" element={<ProfilePage />} />
-                      {user.role === 'admin' && <Route path="/admin" element={<AdminDashboardPage />} />}
-                      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                    </Routes>
-                  </main>
-                </div>
+            <div className="min-h-screen flex bg-gray-50 dark:bg-[#090D16] text-gray-900 dark:text-gray-100 transition-colors duration-200">
+              <Sidebar
+                onOpenApiDocs={() => setShowApiDocsModal(true)}
+                onOpenNewQR={() => setShowStudioModal(true)}
+              />
+              <div className="flex-1 flex flex-col min-w-0">
+                <Navbar onSearchChange={(t) => setSearchTerm(t)} />
+                <main className="flex-1 p-6 md:p-8 max-w-7xl w-full mx-auto">
+                  <Routes>
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/login" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/register" element={<Navigate to="/dashboard" replace />} />
+                    <Route path="/dashboard" element={<Dashboard onOpenNewQR={() => setShowStudioModal(true)} />} />
+                    <Route
+                      path="/qr-codes"
+                      element={
+                        <QRCodesList
+                          onOpenNewQR={() => setShowStudioModal(true)}
+                          onOpenBulkModal={() => setShowBulkModal(true)}
+                          searchTerm={searchTerm}
+                        />
+                      }
+                    />
+                    <Route path="/qr/:id" element={<QRDetails />} />
+                    <Route path="/campaign-roi" element={<CampaignROIDashboardPage />} />
+                    <Route path="/analytics" element={<AnalyticsViewPage />} />
+                    <Route path="/landing-builder" element={<LandingBuilderPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/admin" element={<AdminDashboardPage />} />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </main>
               </div>
-            ) : (
-              <Navigate to="/login" replace />
-            )
+            </div>
           }
         />
       </Routes>
