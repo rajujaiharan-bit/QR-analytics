@@ -28,8 +28,9 @@ interface QRCardProps {
 export const QRCard: React.FC<QRCardProps> = ({ qr, onEdit, onDelete, onDuplicate, onFavoriteToggle }) => {
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const backendUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5001';
-  const shortRedirectUrl = `${backendUrl}/r/${qr.shortCode}`;
+  // Dynamic public redirection URL using active origin so smartphone cameras can scan & redirect
+  const baseUrl = window.location.origin;
+  const shortRedirectUrl = `${baseUrl}/r/${qr.shortCode}`;
 
   const downloadPNG = () => {
     const svg = document.getElementById(`qr-svg-${qr._id}`);
