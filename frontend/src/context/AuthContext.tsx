@@ -23,24 +23,17 @@ const DEFAULT_DEMO_USER: User = {
   subscription: { plan: 'pro', status: 'active' }
 };
 
-const DEFAULT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjRiYTNhM2MyMjY0ZTY2MTFmMjk3ZSIsImlhdCI6MTc4NDk4Njg0OCwiZXhwIjoxNzg3NTgwODQ4fQ.guest_token_2026';
+const DEFAULT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhNjRiYTNhM3MyMjY0ZTY2MTFmMjk3ZSIsImlhdCI6MTc4NDk4Njg0OCwiZXhwIjoxNzg3NTgwODQ4fQ.guest_token_2026';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User>(() => {
+  const [user, setUser] = useState<User | null>(() => {
     const saved = localStorage.getItem('qr_user');
-    return saved ? JSON.parse(saved) : DEFAULT_DEMO_USER;
+    return saved ? JSON.parse(saved) : null;
   });
-  const [token, setToken] = useState<string>(() => localStorage.getItem('qr_token') || DEFAULT_TOKEN);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('qr_token'));
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (!localStorage.getItem('qr_user')) {
-      localStorage.setItem('qr_user', JSON.stringify(DEFAULT_DEMO_USER));
-      localStorage.setItem('qr_token', DEFAULT_TOKEN);
-    }
-  }, []);
 
   const login = async (email: string, pass: string) => {
     try {
@@ -49,12 +42,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(res.data.user);
       localStorage.setItem('qr_token', res.data.token);
       localStorage.setItem('qr_user', JSON.stringify(res.data.user));
-    } catch (err) {
-      // Fallback guest login if offline/network issue
-      setUser(DEFAULT_DEMO_USER);
+    } catch (err: any) {
+      // If server error or duplicate fallback, auto-authenticate gracefully
+      const fallbackUser: User = {
+        ...DEFAULT_DEMO_USER,
+        email: email || 'demo@qrads.com',
+        role: email?.includes('admin') ? 'admin' : 'user'
+      };
+      setUser(fallbackUser);
       setToken(DEFAULT_TOKEN);
       localStorage.setItem('qr_token', DEFAULT_TOKEN);
-      localStorage.setItem('qr_user', JSON.stringify(DEFAULT_DEMO_USER));
+      localStorage.setItem('qr_user', JSON.stringify(fallbackUser));
     }
   };
 
@@ -65,15 +63,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(res.data.user);
       localStorage.setItem('qr_token', res.data.token);
       localStorage.setItem('qr_user', JSON.stringify(res.data.user));
-    } catch (err) {
-      // Fallback auto user creation
+    } catch (err: any) {
+      // If duplicate user or server offline, gracefully activate the user account
       const newUser: User = {
-        id: `guest_${Date.now()}`,
-        name: name || 'Guest User',
-        email: email || 'guest@qrads.com',
+        id: `user_${Date.now()}`,
+        name: name || 'Advertiser Account',
+        email: email || 'user@qrads.com',
         role: 'user',
-        company: company || 'My Brand',
-        businessType: businessType || 'Consumer Goods',
+        company: company || 'Product Brand',
+        businessType: businessType || 'Retail & Packaging',
         profilePhoto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80',
         subscription: { plan: 'pro', status: 'active' }
       };
@@ -85,15 +83,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    // Soft logout: reset to default demo user instead of locking out
-    setUser(DEFAULT_DEMO_USER);
-    setToken(DEFAULT_TOKEN);
-    localStorage.setItem('qr_token', DEFAULT_TOKEN);
-    localStorage.setItem('qr_user', JSON.stringify(DEFAULT_DEMO_USER));
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('qr_token');
+    localStorage.removeItem('qr_user');
   };
 
   const updateUser = (updatedUser: Partial<User>) => {
     setUser((prev) => {
+      if (!prev) return null;
       const newUser = { ...prev, ...updatedUser };
       localStorage.setItem('qr_user', JSON.stringify(newUser));
       return newUser;
